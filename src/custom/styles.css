@@ -1,0 +1,339 @@
+/* ============================================================ */
+/* 🎨 電卓アプリ カスタムスタイル */
+/* ============================================================ */
+
+:root {
+    /* 電卓用カラーテーマ */
+    --calc-bg: #2c3e50;
+    --calc-display-bg: #34495e;
+    --calc-btn-number: #3498db;
+    --calc-btn-operator: #e74c3c;
+    --calc-btn-clear: #95a5a6;
+    --calc-btn-equals: #27ae60;
+    --calc-text-light: #ecf0f1;
+    --calc-shadow: rgba(0,0,0,0.3);
+    
+    /* 一般的なカラー */
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --success-color: #27ae60;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    
+    /* フォント設定 */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-size-base: 16px;
+    --font-size-small: 14px;
+    --font-size-large: 18px;
+    --font-size-display: 32px;
+    
+    /* スペーシング */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* ボーダー・影 */
+    --border-radius: 10px;
+    --border-radius-lg: 20px;
+    --box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    --btn-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* グローバルスタイル */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    min-height: 100vh;
+    padding: 10px;
+}
+
+/* コンテナ */
+.container {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* 電卓本体 */
+.calculator {
+    background: var(--calc-bg);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+}
+
+/* ディスプレイ */
+.calc-display {
+    background: var(--calc-display-bg);
+    color: white;
+    font-size: var(--font-size-display);
+    text-align: right;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+    min-height: 60px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-family: 'Courier New', monospace;
+}
+
+/* ボタングリッド */
+.calc-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* ボタン基本スタイル */
+.calc-btn {
+    background: var(--calc-btn-number);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 24px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.calc-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--btn-shadow);
+    filter: brightness(1.1);
+}
+
+.calc-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* 演算子ボタン */
+.calc-btn.operator {
+    background: var(--calc-btn-operator);
+}
+
+/* クリアボタン */
+.calc-btn.clear {
+    background: var(--calc-btn-clear);
+}
+
+/* イコールボタン */
+.calc-btn.equals {
+    background: var(--calc-btn-equals);
+    grid-column: span 2;
+}
+
+/* ゼロボタン */
+.calc-btn.zero {
+    grid-column: span 2;
+}
+
+/* 認証セクション */
+.auth-section {
+    background: white;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.auth-section h3 {
+    color: var(--dark-color);
+    margin-bottom: 10px;
+    font-size: var(--font-size-large);
+}
+
+.auth-button {
+    background: #4285f4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    font-size: var(--font-size-base);
+    transition: background 0.3s ease;
+}
+
+.auth-button:hover {
+    background: #357ae8;
+}
+
+/* ユーザー情報 */
+.user-info {
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.logout-button {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background 0.3s ease;
+}
+
+.logout-button:hover {
+    background: #c82333;
+}
+
+/* 履歴パネル */
+.history-panel {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 15px;
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.history-panel h3 {
+    color: var(--dark-color);
+    margin-bottom: 15px;
+    font-size: var(--font-size-large);
+}
+
+.history-item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+.history-item:hover {
+    background: var(--light-color);
+}
+
+.history-item span {
+    font-family: 'Courier New', monospace;
+    color: var(--dark-color);
+}
+
+.history-item small {
+    color: #6c757d;
+    font-size: var(--font-size-small);
+}
+
+/* スクロールバーカスタマイズ */
+.history-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.history-panel::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.history-panel::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.history-panel::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ユーティリティクラス */
+.hidden {
+    display: none !important;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+    .container {
+        max-width: 100%;
+        padding: 5px;
+    }
+    
+    .calculator {
+        padding: 15px;
+    }
+    
+    .calc-btn {
+        font-size: 20px;
+        padding: 15px;
+    }
+    
+    .calc-display {
+        font-size: 24px;
+        padding: 15px;
+    }
+    
+    .calc-buttons {
+        gap: 8px;
+    }
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calculator {
+    animation: fadeIn 0.5s ease;
+}
+
+.history-panel {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+    .auth-section {
+        background: var(--calc-bg);
+        color: white;
+    }
+    
+    .auth-section h3 {
+        color: white;
+    }
+    
+    .history-panel {
+        background: var(--calc-bg);
+        color: white;
+    }
+    
+    .history-panel h3 {
+        color: white;
+    }
+    
+    .history-item {
+        border-bottom-color: #4a5568;
+    }
+    
+    .history-item span {
+        color: white;
+    }
+    
+    .history-item small {
+        color: #a0aec0;
+    }
+}

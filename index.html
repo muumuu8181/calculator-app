@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電卓アプリ</title>
+    
+    <!-- カスタムスタイル -->
+    <link rel="stylesheet" href="src/custom/styles.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <!-- カスタム設定 -->
+    <script type="module" src="src/custom/app-config.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 400px; margin: 0 auto; }
+        
+        /* 電卓のスタイル */
+        .calculator {
+            background: #2c3e50;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .calc-display {
+            background: #34495e;
+            color: white;
+            font-size: 32px;
+            text-align: right;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            min-height: 60px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .calc-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 24px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .calc-btn:active {
+            transform: translateY(0);
+        }
+        
+        .calc-btn.operator {
+            background: #e74c3c;
+        }
+        
+        .calc-btn.clear {
+            background: #95a5a6;
+        }
+        
+        .calc-btn.equals {
+            background: #27ae60;
+            grid-column: span 2;
+        }
+        
+        .calc-btn.zero {
+            grid-column: span 2;
+        }
+        
+        /* 認証セクション */
+        .auth-section { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 10px; 
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .auth-button { 
+            background: #4285f4; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px;
+            font-size: 16px;
+        }
+        
+        .auth-button:hover { 
+            background: #357ae8; 
+        }
+        
+        .logout-button { 
+            background: #dc3545; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px; 
+        }
+        
+        .user-info { 
+            background: #d4edda; 
+            color: #155724; 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .history-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .hidden { 
+            display: none; 
+        }
+        
+        @media (max-width: 480px) {
+            .container { 
+                max-width: 100%; 
+                padding: 5px;
+            }
+            .calc-btn {
+                font-size: 20px;
+                padding: 15px;
+            }
+            .calc-display {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 認証セクション -->
+        <div class="auth-section" id="authSection">
+            <h3>🔐 ログインして計算履歴を保存</h3>
+            <button class="auth-button" onclick="handleGoogleLogin()">Googleでログイン</button>
+        </div>
+        
+        <!-- ユーザー情報表示 -->
+        <div class="user-info hidden" id="userInfo">
+            <span>👤 <span id="userName"></span></span>
+            <button class="logout-button" onclick="handleLogout()">ログアウト</button>
+        </div>
+        
+        <!-- 電卓本体 -->
+        <div class="calculator">
+            <div class="calc-display" id="display">0</div>
+            <div class="calc-buttons">
+                <button class="calc-btn clear" onclick="clearCalc()">C</button>
+                <button class="calc-btn operator" onclick="toggleSign()">±</button>
+                <button class="calc-btn operator" onclick="percentage()">%</button>
+                <button class="calc-btn operator" onclick="appendOperator('/')">÷</button>
+                
+                <button class="calc-btn" onclick="appendNumber('7')">7</button>
+                <button class="calc-btn" onclick="appendNumber('8')">8</button>
+                <button class="calc-btn" onclick="appendNumber('9')">9</button>
+                <button class="calc-btn operator" onclick="appendOperator('*')">×</button>
+                
+                <button class="calc-btn" onclick="appendNumber('4')">4</button>
+                <button class="calc-btn" onclick="appendNumber('5')">5</button>
+                <button class="calc-btn" onclick="appendNumber('6')">6</button>
+                <button class="calc-btn operator" onclick="appendOperator('-')">−</button>
+                
+                <button class="calc-btn" onclick="appendNumber('1')">1</button>
+                <button class="calc-btn" onclick="appendNumber('2')">2</button>
+                <button class="calc-btn" onclick="appendNumber('3')">3</button>
+                <button class="calc-btn operator" onclick="appendOperator('+')">+</button>
+                
+                <button class="calc-btn zero" onclick="appendNumber('0')">0</button>
+                <button class="calc-btn" onclick="appendDecimal()">.</button>
+                <button class="calc-btn equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+        
+        <!-- 計算履歴 -->
+        <div class="history-panel hidden" id="historyPanel">
+            <h3>📊 計算履歴</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase設定（変更禁止）
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5PXKChizYDCXF_GJ4KL6Ylq9K5hCPXWE",
+            authDomain: "shares-b1b97.firebaseapp.com",
+            databaseURL: "https://shares-b1b97-default-rtdb.firebaseio.com",
+            projectId: "shares-b1b97",
+            storageBucket: "shares-b1b97.firebasestorage.app",
+            messagingSenderId: "38311063248",
+            appId: "1:38311063248:web:0d2d5726d12b305b24b8d5"
+        };
+
+        // Firebase初期化
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        // 電卓の状態管理
+        let currentUser = null;
+        let displayValue = '0';
+        let previousValue = null;
+        let currentOperator = null;
+        let shouldResetDisplay = false;
+
+        // ディスプレイ更新
+        function updateDisplay() {
+            const display = document.getElementById('display');
+            display.textContent = displayValue;
+        }
+
+        // 数字追加
+        window.appendNumber = (num) => {
+            if (shouldResetDisplay) {
+                displayValue = '0';
+                shouldResetDisplay = false;
+            }
+            
+            if (displayValue === '0') {
+                displayValue = num;
+            } else if (displayValue.length < 12) {
+                displayValue += num;
+            }
+            updateDisplay();
+        };
+
+        // 小数点追加
+        window.appendDecimal = () => {
+            if (shouldResetDisplay) {
+                displayValue = '0';
+                shouldResetDisplay = false;
+            }
+            
+            if (!displayValue.includes('.')) {
+                displayValue += '.';
+            }
+            updateDisplay();
+        };
+
+        // 演算子追加
+        window.appendOperator = (op) => {
+            if (currentOperator && !shouldResetDisplay) {
+                calculate();
+            }
+            
+            previousValue = displayValue;
+            currentOperator = op;
+            shouldResetDisplay = true;
+        };
+
+        // 計算実行
+        window.calculate = () => {
+            if (!previousValue || !currentOperator) return;
+            
+            const prev = parseFloat(previousValue);
+            const current = parseFloat(displayValue);
+            let result;
+            
+            switch (currentOperator) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    result = current !== 0 ? prev / current : 'Error';
+                    break;
+            }
+            
+            const expression = `${previousValue} ${currentOperator} ${displayValue}`;
+            
+            if (result !== 'Error') {
+                result = Math.round(result * 100000000) / 100000000;
+                displayValue = result.toString();
+                
+                // 履歴を保存
+                if (currentUser) {
+                    saveCalculation(expression, result);
+                }
+            } else {
+                displayValue = 'Error';
+            }
+            
+            previousValue = null;
+            currentOperator = null;
+            shouldResetDisplay = true;
+            updateDisplay();
+        };
+
+        // クリア
+        window.clearCalc = () => {
+            displayValue = '0';
+            previousValue = null;
+            currentOperator = null;
+            shouldResetDisplay = false;
+            updateDisplay();
+        };
+
+        // 符号反転
+        window.toggleSign = () => {
+            displayValue = (parseFloat(displayValue) * -1).toString();
+            updateDisplay();
+        };
+
+        // パーセント
+        window.percentage = () => {
+            displayValue = (parseFloat(displayValue) / 100).toString();
+            updateDisplay();
+        };
+
+        // 計算履歴を保存
+        async function saveCalculation(expression, result) {
+            if (!currentUser) return;
+            
+            const now = new Date();
+            const calculationData = {
+                expression: expression,
+                result: result,
+                date: now.toISOString().split('T')[0],
+                time: now.toTimeString().split(' ')[0],
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                userEmail: currentUser.email
+            };
+            
+            try {
+                const userRef = database.ref(`users/${currentUser.uid}/calculations`);
+                await userRef.push(calculationData);
+            } catch (error) {
+                console.error('保存エラー:', error);
+            }
+        }
+
+        // 履歴を読み込み
+        function loadCalculationHistory(userId) {
+            const userRef = database.ref(`users/${userId}/calculations`);
+            userRef.orderByChild('timestamp').limitToLast(20).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const historyList = document.getElementById('historyList');
+                
+                if (data) {
+                    const entries = Object.entries(data)
+                        .map(([key, value]) => ({ id: key, ...value }))
+                        .reverse();
+                    
+                    historyList.innerHTML = entries.map(entry => `
+                        <div class="history-item">
+                            <span>${entry.expression} = ${entry.result}</span>
+                            <small>${entry.time}</small>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('historyPanel').classList.remove('hidden');
+                } else {
+                    historyList.innerHTML = '<p>履歴がありません</p>';
+                }
+            });
+        }
+
+        // 認証状態の監視
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('userInfo').classList.remove('hidden');
+                document.getElementById('userName').textContent = user.displayName;
+                loadCalculationHistory(user.uid);
+            } else {
+                document.getElementById('authSection').classList.remove('hidden');
+                document.getElementById('userInfo').classList.add('hidden');
+                document.getElementById('historyPanel').classList.add('hidden');
+            }
+        });
+
+        // Googleログイン
+        window.handleGoogleLogin = async () => {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                console.error('ログインエラー:', error);
+                alert('ログインに失敗しました');
+            }
+        };
+
+        // ログアウト
+        window.handleLogout = async () => {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('ログアウトエラー:', error);
+            }
+        };
+
+        // キーボード入力対応
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                appendNumber(e.key);
+            } else if (e.key === '.') {
+                appendDecimal();
+            } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                appendOperator(e.key);
+            } else if (e.key === 'Enter' || e.key === '=') {
+                calculate();
+            } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
+                clearCalc();
+            } else if (e.key === 'Backspace') {
+                if (displayValue.length > 1) {
+                    displayValue = displayValue.slice(0, -1);
+                } else {
+                    displayValue = '0';
+                }
+                updateDisplay();
+            }
+        });
+
+        // 初期表示
+        updateDisplay();
+    </script>
+</body>
+</html>
